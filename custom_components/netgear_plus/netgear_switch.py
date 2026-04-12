@@ -92,6 +92,17 @@ class HomeAssistantNetgearSwitch:
         async with self.api_lock:
             return await self.hass.async_add_executor_job(self.api.get_switch_infos)  # type: ignore[attr-defined]
 
+    async def async_get_firmware_update_info(
+        self, installed_version: str | None = None
+    ) -> dict[str, Any] | None:
+        """Get firmware update information asynchronously."""
+        if self.api is None:
+            return None
+        async with self.api_lock:
+            return await self.hass.async_add_executor_job(
+                self.api.get_firmware_update_info, installed_version
+            )
+
 
 class NetgearCoordinatorEntity(CoordinatorEntity):
     """Base class for a Netgear router entity."""

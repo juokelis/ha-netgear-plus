@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     DOMAIN,
+    FIRMWARE_SCAN_INTERVAL,
     PLATFORMS,
     SCAN_INTERVAL,
 )
@@ -28,6 +29,7 @@ from .netgear_switch import HomeAssistantNetgearSwitch
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL_TIMEDELTA = timedelta(seconds=SCAN_INTERVAL)
+FIRMWARE_SCAN_INTERVAL_TIMEDELTA = timedelta(seconds=FIRMWARE_SCAN_INTERVAL)
 
 type NetgearSwitchConfigEntry = ConfigEntry[NetgearSwitchData]
 
@@ -38,6 +40,7 @@ class NetgearSwitchData:
 
     gs_switch: HomeAssistantNetgearSwitch
     coordinator_switch_infos: DataUpdateCoordinator
+    coordinator_firmware: DataUpdateCoordinator
 
 
 async def async_setup_entry(
@@ -70,6 +73,13 @@ async def async_setup_entry(
         """Fetch data from the router."""
         return await gs_switch.async_get_switch_infos()
 
+    async def async_update_firmware() -> dict[str, Any] | None:
+        """Fetch available firmware update information."""
+        installed_version = None
+        if coordinator_switch_infos.data is not None:
+            installed_version = coordinator_switch_infos.data.get("switch_firmware")
+        return await gs_switch.async_get_firmware_update_info(installed_version)
+
     # Create update coordinators
     coordinator_switch_infos = DataUpdateCoordinator(
         hass,
@@ -81,7 +91,20 @@ async def async_setup_entry(
 
     await coordinator_switch_infos.async_config_entry_first_refresh()
 
-    entry.runtime_data = NetgearSwitchData(gs_switch, coordinator_switch_infos)  # type: ignore argument-type
+    coordinator_firmware = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name=f"{gs_switch.device_name} Firmware",
+        update_method=async_update_firmware,
+        update_interval=FIRMWARE_SCAN_INTERVAL_TIMEDELTA,
+    )
+    await coordinator_firmware.async_refresh()
+
+    entry.runtime_data = NetgearSwitchData(
+        gs_switch,
+        coordinator_switch_infos,
+        coordinator_firmware,
+    )  # type: ignore argument-type
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
