@@ -8,12 +8,12 @@
   "issue_tracker": "https://github.com/ckarrie/ha-netgear-plus/issues",
   "requirements": [
     "lxml>=4.6.1",
-    "py-netgear-plus @ git+https://github.com/juokelis/py-netgear-plus@switch_port#egg=py-netgear-plus"],
+    "py-netgear-plus @ git+https://github.com/juokelis/py-netgear-plus@2d4d30d61d60925e0c936b97a0d9479799845dea#egg=py-netgear-plus"],
   "ssdp": [
     {
       "manufacturer": "NETGEAR",
       "deviceType": "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
     }
   ],
-  "version": "0.7.11"
+  "version": "0.7.12"
 }
